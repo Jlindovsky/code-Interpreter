@@ -53,14 +53,18 @@ function_dict = {
 }
 
 def main():
-    # Read the first line from standard input
-    first_line = sys.stdin.readline()
+    found = False
+    while found == False:
+        first_line = sys.stdin.readline()
+        if not first_line.strip().startswith('#'):
+                found = True
     first_line = re.sub(r'#.*', '', first_line).strip()
-    # Check if the first line is ".IPPcode24"
     if first_line == ".IPPcode24":
         print("") # pomocna newline  !!!!
         createProg()
         for line in sys.stdin:
+            if line.strip().startswith('#'):
+                continue
             line = re.sub(r'#.*', '', line)
             line = line.strip()
             words = line.split()
