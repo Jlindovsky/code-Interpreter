@@ -52,9 +52,6 @@ function_dict = {
     'NOT': [createFunc, createVar, createSymb, createSymb],
 }
 
-
-
-
 def main():
     # Read the first line from standard input
     first_line = sys.stdin.readline()
@@ -64,7 +61,6 @@ def main():
         print("") # pomocna newline  !!!!
         createProg()
         for line in sys.stdin:
-            print("roro")
             line = re.sub(r'#.*', '', line)
             line = line.strip()
             words = line.split()
@@ -73,11 +69,13 @@ def main():
                     expected_funcs = function_dict[words[0]]
                     if len(words) != len(expected_funcs):
                         print(f"Error: Incorrect number of arguments for command '{words[0]}'. Expected {len(expected_funcs)}, got {len(words)}.")
+                        sys.exit(22)
                     else:
                         for i in range(len(expected_funcs)):
                             expected_funcs[i](words[i])
                 else:
                     print(f"No functions found for command '{words[0]}'.")
+                    sys.exit(22)
     else:
         print("Error: The first line is not '.IPPcode24'. Exiting.", file=sys.stderr)
         sys.exit(21)
