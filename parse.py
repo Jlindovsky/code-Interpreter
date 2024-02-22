@@ -16,13 +16,13 @@ def createFunc(root, opcode, orderCount=[0]):
 
 def createVar(root, x, argCount):
     splited = x.split("@", 1)
-    if splited[0] in frames:
+    if splited[0] in frames and not splited[1] == "":
         arg = ET.SubElement(root, f"arg{argCount}", type="var")
         arg.text = x
     else:
-        print(f"'{x}' is not a variable.")
+        print(f"'{x}' is wrong variable.")
         sys.exit(22)
-        
+
 def createSymb(root, x, argCount):
     splited = x.split("@", 1)
 
@@ -130,7 +130,6 @@ def main():
                     print(f"No functions found for command '{words[0]}'.")
                     sys.exit(22)
 
-        tree = ET.ElementTree(root)
                 
         for instruction in root.findall('instruction'):
             if len(instruction) == 0:
