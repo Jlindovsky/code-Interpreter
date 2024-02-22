@@ -1,0 +1,14 @@
+# Yet another sample test case
+.IPPcode24
+LABEL start
+DEFVAR GF@x
+DEFVAR LF@y
+DEFVAR TF@z
+MOVE GF@x int@5
+MOVE LF@y string@hello
+MOVE TF@z bool@true
+PUSHS GF@x
+PUSHS LF@y
+PUSHS TF@z
+WRITE TF@z
+EXIT int@0

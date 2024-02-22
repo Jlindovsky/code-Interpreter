@@ -1,0 +1,4 @@
+# Incorrect opcode
+.IPPcode24
+LABEL start
+WRONGOP GF@x

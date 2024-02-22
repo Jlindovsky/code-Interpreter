@@ -1,0 +1,8 @@
+# This is a sample test case
+.IPPcode24
+LABEL start
+DEFVAR GF@x
+MOVE GF@x int@5
+PUSHS GF@x
+WRITE GF@x
+EXIT int@0
