@@ -1,0 +1,4 @@
+# Test case with multiple instructions on a single line
+.IPPcode24
+LABEL start
+DEFVAR GF@x MOVE GF@x int@5 PUSHS GF@x WRITE EXIT int@0
