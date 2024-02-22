@@ -132,9 +132,10 @@ def main():
                 instruction.text = '\n    '
         
         xml_str = ET.tostring(root, encoding="utf-8")
-        xml_str = xml.dom.minidom.parseString(xml_str).toprettyxml(indent="    ")
+        xml_str = xml.dom.minidom.parseString(xml_str).toprettyxml(indent="    ", encoding="UTF-8")
 
-        sys.stdout.buffer.write(xml_str.encode('utf-8'))
+
+        sys.stdout.buffer.write(xml_str)
 
     else:
         print("Error: The first line is not '.IPPcode24'. Exiting.", file=sys.stderr)
