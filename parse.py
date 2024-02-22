@@ -15,9 +15,14 @@ def createFunc(root, opcode, orderCount=[0]):
     return instruction
 
 def createVar(root, x, argCount):
-    arg = ET.SubElement(root, f"arg{argCount}", type="var")
-    arg.text = x
-
+    splited = x.split("@", 1)
+    if splited[0] in frames:
+        arg = ET.SubElement(root, f"arg{argCount}", type="var")
+        arg.text = x
+    else:
+        print(f"'{x}' is not a variable.")
+        sys.exit(22)
+        
 def createSymb(root, x, argCount):
     splited = x.split("@", 1)
 
