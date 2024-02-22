@@ -1,8 +1,0 @@
-# Test case with upper and lower case
-.IPPcOde24
-LABEL start
-defvar GF@x
-move GF@x int@5
-pushs gf@x # small gf mistake
-write
-exit int@0

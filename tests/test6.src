@@ -1,4 +1,0 @@
-# Incorrect number of arguments for an opcode
-.IPPcode24
-LABEL start
-DEFVAR GF@x int@5
