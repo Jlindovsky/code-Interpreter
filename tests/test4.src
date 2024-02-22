@@ -1,6 +1,7 @@
-# comment
-.IPPcOde24# comment
-WRITE int@0 # comment
-WRITE GF@a
-
-# comment
+# Incorrect test case missing .IPPcode24 declaration
+LABEL start
+DEFVAR GF@x
+MOVE GF@x int@5
+PUSHS GF@x
+WRITE GF@x
+EXIT int@0

@@ -1,3 +1,11 @@
-.IPPcOde24
-WRITE int@0
-WRITE GF@a
+# Another sample test case
+.IPPcode24
+LABEL start
+DEFVAR GF@x
+DEFVAR LF@y
+MOVE GF@x int@5
+MOVE LF@y string@hello
+PUSHS GF@x
+PUSHS LF@y
+WRITE LF@y
+EXIT int@0

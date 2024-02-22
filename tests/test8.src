@@ -1,0 +1,4 @@
+# Incorrect variable format
+.IPPcode24
+LABEL start
+DEFVAR x

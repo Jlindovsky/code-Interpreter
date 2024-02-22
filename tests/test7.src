@@ -1,0 +1,5 @@
+# Using an unsupported type
+.IPPcode24
+LABEL start
+DEFVAR GF@x
+MOVE GF@x unknown@5

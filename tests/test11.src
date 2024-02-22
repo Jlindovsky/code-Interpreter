@@ -1,0 +1,8 @@
+# Test case with opcodes in lower case
+.IPPcOde24
+LABEL start
+defvar GF@x
+move GF@x int@5
+pushs GF@x
+write GF@x
+exit int@0
