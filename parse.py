@@ -25,8 +25,8 @@ def createSymb(root, x, argCount):
         argCount = createVar(root, x, argCount)
     elif splited[0] in types:
         arg = ET.SubElement(root, f"arg{argCount}", type=splited[0])
-        if splited[0] == "string" and splited[1] == "":
-            arg.text = ""
+        if splited[0] == "string":
+            arg.text = f"{splited[1]}"
         elif splited[0] == "nil":
             if splited[1] == "nil":
                 arg.text = "nil"
@@ -34,7 +34,7 @@ def createSymb(root, x, argCount):
                 print("wrong usage of nil")
                 sys.exit(22)
         elif not splited[1] == "" and not splited[1] == "nil":
-            arg.text = f"'{splited[1]}'"
+            arg.text = f"{splited[1]}"
         else:
             print("wrong symbol.")
             sys.exit(22)
@@ -130,11 +130,12 @@ def main():
         for instruction in root.findall('instruction'):
             if len(instruction) == 0:
                 instruction.text = '\n    '
+            for arg in instruction:
+                if arg.text == "":
+                    arg.text = ' '
         
         xml_str = ET.tostring(root, encoding="utf-8")
         xml_str = xml.dom.minidom.parseString(xml_str).toprettyxml(indent="    ", encoding="UTF-8")
-
-
         sys.stdout.buffer.write(xml_str)
 
     else:
