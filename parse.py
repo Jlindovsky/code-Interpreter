@@ -1,53 +1,40 @@
 import re
 import sys
 import xml.etree.ElementTree as ET
+import xml.dom.minidom
 
 frames = ["GF", "LF", "TF"]
 types = ["int", "string", "bool", "nil"]
 
-
 def createProg():
-    print ("creating Prog")
-    print("")
+    return ET.Element("program", language="IPPcode24")
 
-def createFunc(x, orderCount=[0]):
+def createFunc(root, opcode, orderCount=[0]):
     orderCount[0] += 1
-    print(f"order: {orderCount[0]}")
-    print (f"opcode: {x}")
-    print("")
+    instruction = ET.SubElement(root, "instruction", order=str(orderCount[0]), opcode=opcode)
+    return instruction
 
-def createVar(x):
-    splited = x.split("@")
-    if splited[0] in frames:
-        print (f"Type: var")
-        print (f"Name: {x}")
-        print("")
-    else:
-        print(f"'{x}' is not a variable.")
-        sys.exit(22)
+def createVar(root, x, argCount):
+    arg = ET.SubElement(root, f"arg{argCount}", type="var")
+    arg.text = x
 
-def createSymb(x):
+def createSymb(root, x, argCount):
     splited = x.split("@", 1)
 
     if splited[0] in frames:
-        createVar(x)
+        argCount = createVar(root, x, argCount)
     elif splited[0] in types:
+        arg = ET.SubElement(root, f"arg{argCount}", type=splited[0])
         if splited[0] == "string" and splited[1] == "":
-            print (f"Type: {splited[0]}")
-            print (f"Name: ")
-            print("")
+            arg.text = ""
         elif splited[0] == "nil":
             if splited[1] == "nil":
-                print (f"Type: {splited[0]}")
-                print (f"Name: {splited[1]}")
-                print("")
+                arg.text = "nil"
             else:
                 print("wrong usage of nil")
                 sys.exit(22)
         elif not splited[1] == "" and not splited[1] == "nil":
-            print (f"Type: {splited[0]}")
-            print (f"Name: '{splited[1]}'")
-            print("")
+            arg.text = f"'{splited[1]}'"
         else:
             print("wrong symbol.")
             sys.exit(22)
@@ -55,16 +42,14 @@ def createSymb(x):
         print(f"'{x}' is not a symbol or variable.")
         sys.exit(22)
 
-def createLabel(x):
-    print (f"Type: label")
-    print (f"Name: {x}")
-    print("")
+def createLabel(root, x, argCount):
+    arg = ET.SubElement(root, f"arg{argCount}", type="label")
+    arg.text = x
 
-def createType(x):
+def createType(root, x, argCount):
     if x in types:
-        print (f"Type: type")
-        print (f"Name: {x}")
-        print("")
+        arg = ET.SubElement(root, f"arg{argCount}", type="type")
+        arg.text = x
     else:
         print(f"'{x}' is not a type.")
         sys.exit(22)
@@ -108,22 +93,14 @@ function_dict = {
 }
 
 def main():
-    # Create the root element
-    root = ET.Element("program")
-    root.set("language", "IPPcode24")
-
-    # Create the ElementTree
-    tree = ET.ElementTree(root)
-
+    root = createProg()
     found = False
-    while found == False:
+    while not found:
         first_line = sys.stdin.readline()
         if not first_line.strip().startswith('#'):
-                found = True
+            found = True
     first_line = re.sub(r'#.*', '', first_line).strip()
     if first_line.upper() == ".IPPCODE24":
-        print("") # pomocna newline  !!!!
-        createProg()
         for line in sys.stdin:
             if line.strip().startswith('#'):
                 continue
@@ -139,11 +116,26 @@ def main():
                         print(f"Error: Incorrect number of arguments for command '{words[0]}'. Expected {len(expected_funcs)}, got {len(words)}.")
                         sys.exit(22)
                     else:
-                        for i in range(len(expected_funcs)):
-                            expected_funcs[i](words[i])
+                        instruction = expected_funcs[0](root, words[0])
+                        argCount = 0
+                        for i in range(1, len(expected_funcs)):
+                            argCount +=1
+                            expected_funcs[i](instruction, words[i], argCount)
                 else:
                     print(f"No functions found for command '{words[0]}'.")
                     sys.exit(22)
+
+        tree = ET.ElementTree(root)
+                
+        for instruction in root.findall('instruction'):
+            if len(instruction) == 0:
+                instruction.text = '\n    '
+        
+        xml_str = ET.tostring(root, encoding="utf-8")
+        xml_str = xml.dom.minidom.parseString(xml_str).toprettyxml(indent="    ")
+
+        sys.stdout.buffer.write(xml_str.encode('utf-8'))
+
     else:
         print("Error: The first line is not '.IPPcode24'. Exiting.", file=sys.stderr)
         sys.exit(21)
