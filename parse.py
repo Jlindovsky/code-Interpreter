@@ -1,18 +1,73 @@
 import re
 import sys
+import xml.etree.ElementTree as ET
+
+frames = ["GF", "LF", "TF"]
+types = ["int", "string", "bool", "nil"]
+
 
 def createProg():
     print ("creating Prog")
-def createFunc(x):
-    print (f"creating func: {x}")
+    print("")
+
+def createFunc(x, orderCount=[0]):
+    orderCount[0] += 1
+    print(f"order: {orderCount[0]}")
+    print (f"opcode: {x}")
+    print("")
+
 def createVar(x):
-    print (f"creating var: {x}")
+    splited = x.split("@")
+    if splited[0] in frames:
+        print (f"Type: var")
+        print (f"Name: {x}")
+        print("")
+    else:
+        print(f"'{x}' is not a variable.")
+        sys.exit(22)
+
 def createSymb(x):
-    print (f"creating symb: {x}")
+    splited = x.split("@", 1)
+
+    if splited[0] in frames:
+        createVar(x)
+    elif splited[0] in types:
+        if splited[0] == "string" and splited[1] == "":
+            print (f"Type: {splited[0]}")
+            print (f"Name: ")
+            print("")
+        elif splited[0] == "nil":
+            if splited[1] == "nil":
+                print (f"Type: {splited[0]}")
+                print (f"Name: {splited[1]}")
+                print("")
+            else:
+                print("wrong usage of nil")
+                sys.exit(22)
+        elif not splited[1] == "" and not splited[1] == "nil":
+            print (f"Type: {splited[0]}")
+            print (f"Name: '{splited[1]}'")
+            print("")
+        else:
+            print("wrong symbol.")
+            sys.exit(22)
+    else:
+        print(f"'{x}' is not a symbol or variable.")
+        sys.exit(22)
+
 def createLabel(x):
-    print (f"creating label: {x}")
+    print (f"Type: label")
+    print (f"Name: {x}")
+    print("")
+
 def createType(x):
-    print (f"creating type {x}")
+    if x in types:
+        print (f"Type: type")
+        print (f"Name: {x}")
+        print("")
+    else:
+        print(f"'{x}' is not a type.")
+        sys.exit(22)
 
 function_dict = {
     'MOVE': [createFunc, createVar, createSymb],
@@ -32,7 +87,7 @@ function_dict = {
     'STRI2INT': [createFunc, createSymb, createSymb],
     'READ': [createFunc, createVar, createType],
     'WRITE': [createFunc, createSymb],
-    'CONCAT': [createFunc, createSymb, createSymb],
+    'CONCAT': [createFunc, createVar, createSymb, createSymb],
     'STRLEN': [createFunc, createSymb],
     'GETCHAR': [createFunc, createSymb, createSymb],
     'SETCHAR': [createFunc, createSymb, createSymb],
@@ -53,13 +108,20 @@ function_dict = {
 }
 
 def main():
+    # Create the root element
+    root = ET.Element("program")
+    root.set("language", "IPPcode24")
+
+    # Create the ElementTree
+    tree = ET.ElementTree(root)
+
     found = False
     while found == False:
         first_line = sys.stdin.readline()
         if not first_line.strip().startswith('#'):
                 found = True
     first_line = re.sub(r'#.*', '', first_line).strip()
-    if first_line == ".IPPcode24":
+    if first_line.upper() == ".IPPCODE24":
         print("") # pomocna newline  !!!!
         createProg()
         for line in sys.stdin:
@@ -68,6 +130,8 @@ def main():
             line = re.sub(r'#.*', '', line)
             line = line.strip()
             words = line.split()
+            if len(words) > 0:
+                words[0] = words[0].upper()
             if words:
                 if words[0] in function_dict:
                     expected_funcs = function_dict[words[0]]
