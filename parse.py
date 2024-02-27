@@ -130,14 +130,14 @@ def main():
                     print(f"No functions found for command '{words[0]}'.")
                     sys.exit(22)
 
-                
+        """""      
         for instruction in root.findall('instruction'):
             if len(instruction) == 0:
                 instruction.text = '\n    '
             for arg in instruction:
                 if arg.text == "":
                     arg.text = ' '
-        
+        """
         xml_str = ET.tostring(root, encoding="utf-8")
         xml_str = xml.dom.minidom.parseString(xml_str).toprettyxml(indent="    ", encoding="UTF-8")
         sys.stdout.buffer.write(xml_str)
