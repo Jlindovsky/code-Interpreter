@@ -1,9 +1,5 @@
 # This is a sample test case
 .IPPcode24
-LABEL start
-READ GF@x int
-MOVE GF@x int@5
-PUSHS GF@x
-WRITE GF@x
-CREATEFRAME
-EXIT int@0
+
+PUSHS int@3
+

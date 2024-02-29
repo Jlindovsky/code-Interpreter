@@ -3,148 +3,163 @@ import sys
 import xml.etree.ElementTree as ET
 import xml.dom.minidom
 
-frames = ["GF", "LF", "TF"]
-types = ["int", "string", "bool", "nil"]
+class Program:
+    def __init__(self):
+        self.root = ET.Element("program", language="IPPcode24")
 
-def createProg():
-    return ET.Element("program", language="IPPcode24")
+    def add_instruction(self, opcode, order_count):
+        order_count[0] += 1
+        return Instruction(self.root, opcode, order_count[0])
 
-def createFunc(root, opcode, orderCount=[0]):
-    orderCount[0] += 1
-    instruction = ET.SubElement(root, "instruction", order=str(orderCount[0]), opcode=opcode)
-    return instruction
+    def get_xml(self):
+        xml_str = ET.tostring(self.root, encoding="utf-8")
+        return xml.dom.minidom.parseString(xml_str).toprettyxml(indent="    ", encoding="UTF-8")
 
-def createVar(root, x, argCount):
-    splited = x.split("@", 1)
-    if splited[0] in frames and not splited[1] == "":
-        arg = ET.SubElement(root, f"arg{argCount}", type="var")
-        arg.text = x
-    else:
-        print(f"'{x}' is wrong variable.")
-        sys.exit(22)
+class Instruction:
+    def __init__(self, root, opcode, order):
+        self.instruction = ET.SubElement(root, "instruction", order=str(order), opcode=opcode)
 
-def createSymb(root, x, argCount):
-    splited = x.split("@", 1)
+    def add_argument(self, arg_count, arg_type, arg_value):
+        arg = ET.SubElement(self.instruction, f"arg{arg_count}", type=arg_type)
+        arg.text = arg_value
 
-    if splited[0] in frames:
-        argCount = createVar(root, x, argCount)
-    elif splited[0] in types:
-        arg = ET.SubElement(root, f"arg{argCount}", type=splited[0])
-        if splited[0] == "string":
-            arg.text = f"{splited[1]}"
-        elif splited[0] == "nil":
-            if splited[1] == "nil":
-                arg.text = "nil"
-            else:
-                print("wrong usage of nil")
-                sys.exit(22)
-        elif not splited[1] == "" and not splited[1] == "nil":
-            arg.text = f"{splited[1]}"
-        else:
-            print("wrong symbol.")
+class IPPCodeInterpreter:
+    def __init__(self):
+        self.frames = ["GF", "LF", "TF"]
+        self.types = ["int", "string", "bool", "nil"]
+        self.type_reg = {"int": r'-*[0-9]+', "bool": r'(false|true)', "string": r'[^ ]*', "nil": r'nil'}
+        self.function_dict = {
+            'MOVE': [self.create_var, self.create_symb],
+            'CREATEFRAME': [],
+            'PUSHFRAME': [],
+            'POPFRAME': [],
+            'DEFVAR': [self.create_var],
+            'CALL': [self.create_label],
+            'RETURN': [],
+            'PUSHS': [self.create_symb],
+            'POPS': [self.create_symb],
+            'ADD': [self.create_var, self.create_symb, self.create_symb],
+            'SUB': [self.create_var, self.create_symb, self.create_symb],
+            'MUL': [self.create_var, self.create_symb, self.create_symb],
+            'IDIV': [self.create_var, self.create_symb, self.create_symb],
+            'INT2CHAR': [self.create_var, self.create_symb],
+            'STRI2INT': [self.create_var, self.create_symb, self.create_symb],
+            'READ': [self.create_var, self.create_type],
+            'WRITE': [self.create_symb],
+            'CONCAT': [self.create_var, self.create_symb, self.create_symb],
+            'STRLEN': [self.create_var, self.create_symb],
+            'GETCHAR': [self.create_var, self.create_symb, self.create_symb],
+            'SETCHAR': [self.create_var, self.create_symb, self.create_symb],
+            'TYPE': [self.create_var, self.create_symb],
+            'LABEL': [self.create_label],
+            'JUMP': [self.create_label],
+            'JUMPIFEQ': [self.create_label, self.create_symb, self.create_symb],
+            'JUMPIFNEQ': [self.create_label, self.create_symb, self.create_symb],
+            'EXIT': [self.create_symb],
+            'DPRINT': [self.create_symb],
+            'BREAK': [],
+            'LT': [self.create_var, self.create_symb, self.create_symb],
+            'GT': [self.create_var, self.create_symb, self.create_symb],
+            'EQ': [self.create_var, self.create_symb, self.create_symb],
+            'AND': [self.create_var, self.create_symb, self.create_symb],
+            'OR': [self.create_var, self.create_symb, self.create_symb],
+            'NOT': [self.create_var, self.create_symb, self.create_symb],
+        }
+
+    def create_var(self, instruction, x, argCount):
+        if '@' not in x:
+            print(f"'{x}' - Variable name is missing '@'.")
             sys.exit(22)
-    else:
-        print(f"'{x}' is not a symbol or variable.")
-        sys.exit(22)
+        splited = x.split("@", 1)
+        if splited[0] in self.frames and not splited[1] == "":
+            instruction.add_argument(argCount, "var", x)
+        else:
+            print(f"'{x}' - Invalid variable.")
+            sys.exit(22)
 
-def createLabel(root, x, argCount):
-    arg = ET.SubElement(root, f"arg{argCount}", type="label")
-    arg.text = x
+    def create_symb(self, instruction, x, argCount):
+        if '@' not in x:
+            print(f"'{x}' - Variable name is missing '@'.")
+            sys.exit(22)
+        splited = x.split("@", 1)
 
-def createType(root, x, argCount):
-    if x in types:
-        arg = ET.SubElement(root, f"arg{argCount}", type="type")
-        arg.text = x
-    else:
-        print(f"'{x}' is not a type.")
-        sys.exit(22)
-
-function_dict = {
-    'MOVE': [createFunc, createVar, createSymb],
-    'CREATEFRAME': [createFunc],
-    'PUSHFRAME': [createFunc],
-    'POPFRAME': [createFunc],
-    'DEFVAR': [createFunc, createVar],
-    'CALL': [createFunc, createLabel],
-    'RETURN': [createFunc],
-    'PUSHS': [createFunc, createSymb],
-    'POPS': [createFunc, createSymb],
-    'ADD': [createFunc, createSymb, createSymb],
-    'SUB': [createFunc, createSymb, createSymb],
-    'MUL': [createFunc, createSymb, createSymb],
-    'IDIV': [createFunc, createSymb, createSymb],
-    'INT2CHAR': [createFunc, createSymb],
-    'STRI2INT': [createFunc, createSymb, createSymb],
-    'READ': [createFunc, createVar, createType],
-    'WRITE': [createFunc, createSymb],
-    'CONCAT': [createFunc, createVar, createSymb, createSymb],
-    'STRLEN': [createFunc, createSymb],
-    'GETCHAR': [createFunc, createSymb, createSymb],
-    'SETCHAR': [createFunc, createSymb, createSymb],
-    'TYPE': [createFunc, createSymb],
-    'LABEL': [createFunc, createLabel],
-    'JUMP': [createFunc, createLabel],
-    'JUMPIFEQ': [createFunc, createLabel, createSymb, createSymb],
-    'JUMPIFNEQ': [createFunc, createLabel, createSymb, createSymb],
-    'EXIT': [createFunc, createSymb],
-    'DPRINT': [createFunc, createSymb],
-    'BREAK': [createFunc],
-    'LT': [createFunc, createVar, createSymb, createSymb],
-    'GT': [createFunc, createVar, createSymb, createSymb],
-    'EQ': [createFunc, createVar, createSymb, createSymb],
-    'AND': [createFunc, createVar, createSymb, createSymb],
-    'OR': [createFunc, createVar, createSymb, createSymb],
-    'NOT': [createFunc, createVar, createSymb, createSymb],
-}
-
-def main():
-    root = createProg()
-    found = False
-    while not found:
-        first_line = sys.stdin.readline()
-        if not first_line.strip().startswith('#'):
-            found = True
-    first_line = re.sub(r'#.*', '', first_line).strip()
-    if first_line.upper() == ".IPPCODE24":
-        for line in sys.stdin:
-            if line.strip().startswith('#'):
-                continue
-            line = re.sub(r'#.*', '', line)
-            line = line.strip()
-            words = line.split()
-            if len(words) > 0:
-                words[0] = words[0].upper()
-            if words:
-                if words[0] in function_dict:
-                    expected_funcs = function_dict[words[0]]
-                    if len(words) != len(expected_funcs):
-                        print(f"Error: Incorrect number of arguments for command '{words[0]}'. Expected {len(expected_funcs)}, got {len(words)}.")
-                        sys.exit(22)
-                    else:
-                        instruction = expected_funcs[0](root, words[0])
-                        argCount = 0
-                        for i in range(1, len(expected_funcs)):
-                            argCount +=1
-                            expected_funcs[i](instruction, words[i], argCount)
+        if splited[0] in self.frames:
+            self.create_var(instruction, x, argCount)
+        elif splited[0] in self.types:
+            arg_type = splited[0]
+            if splited[0] == "string":
+                arg_value = splited[1]
+            elif splited[0] == "nil":
+                if splited[1] == "nil":
+                    arg_value = "nil"
                 else:
-                    print(f"No functions found for command '{words[0]}'.")
+                    print("Error: Wrong usage of 'nil'.")
                     sys.exit(22)
+            elif not splited[1] == "" and not splited[1] == "nil":
+                if re.fullmatch(self.type_reg[splited[0]], splited[1]):
+                    arg_value = splited[1]
+                else:
+                    print("Error: Value doesn't match the type.")
+                    sys.exit(22)
+            else:
+                print("Error: Invalid symbol.")
+                sys.exit(22)
+            instruction.add_argument(argCount, arg_type, arg_value)
+        else:
+            print(f"'{x}' - Not a valid symbol or variable.")
+            sys.exit(22)
 
-        """""      
-        for instruction in root.findall('instruction'):
-            if len(instruction) == 0:
-                instruction.text = '\n    '
-            for arg in instruction:
-                if arg.text == "":
-                    arg.text = ' '
-        """
-        xml_str = ET.tostring(root, encoding="utf-8")
-        xml_str = xml.dom.minidom.parseString(xml_str).toprettyxml(indent="    ", encoding="UTF-8")
-        sys.stdout.buffer.write(xml_str)
+    def create_label(self, instruction, x, argCount):
+        instruction.add_argument(argCount, "label", x)
 
-    else:
-        print("Error: The first line is not '.IPPcode24'. Exiting.", file=sys.stderr)
-        sys.exit(21)
+    def create_type(self, instruction, x, argCount):
+        if x in self.types:
+            instruction.add_argument(argCount, "type", x)
+        else:
+            print(f"'{x}' - Not a valid type.")
+            sys.exit(22)
+
+    def parse(self):
+        program = Program()
+        order_count = [0]
+
+        found = False
+        while not found:
+            first_line = sys.stdin.readline()
+            if not first_line.strip().startswith('#'):
+                found = True
+
+        first_line = re.sub(r'#.*', '', first_line).strip()
+        if first_line.upper() == ".IPPCODE24":
+            for line in sys.stdin:
+                if line.strip().startswith('#'):
+                    continue
+                line = re.sub(r'#.*', '', line)
+                line = line.strip()
+                words = line.split()
+                if len(words) > 0:
+                    words[0] = words[0].upper()
+                if words:
+                    if words[0] in self.function_dict:
+                        expected_funcs = self.function_dict[words[0]]
+                        if len(words) != len(expected_funcs) + 1:
+                            print(
+                                f"Error: Incorrect number of arguments for command '{words[0]}'. Expected {len(expected_funcs)}, got {len(words) - 1}.")
+                            sys.exit(22)
+                        else:
+                            instruction = program.add_instruction(words[0], order_count)
+                            for arg_count, func in enumerate(expected_funcs, start=1):
+                                func(instruction, words[arg_count], arg_count)
+                    else:
+                        print(f"No functions found for command '{words[0]}'.")
+                        sys.exit(22)
+
+            xml_str = program.get_xml()
+            sys.stdout.buffer.write(xml_str)
+        else:
+            print("Error: The first line is not '.IPPcode24'. Exiting.", file=sys.stderr)
+            sys.exit(21)
 
 if __name__ == "__main__":
-    main()
+    interpreter = IPPCodeInterpreter()
+    interpreter.parse()
