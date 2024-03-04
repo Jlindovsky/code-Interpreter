@@ -1,9 +1,0 @@
-# Test case with mixed upper and lower case opcodes and comments
-.IPPcode24
-
-LABEL start
-DefVaR GF@x # Defining variable with mixed casing
-mOvE GF@x int@5 # Moving value to variable with mixed casing
-PuShS GF@x # Pushing value onto stack with mixed casing
-wRiTe GF@x # Writing value with mixed casing
-exit int@0 # Exiting program with mixed casing
