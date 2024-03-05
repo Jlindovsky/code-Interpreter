@@ -71,7 +71,7 @@ class IPPCodeInterpreter:
             print(f"'{x}' - Variable name is missing '@'.", file=sys.stderr)
             sys.exit(23)
         splited = x.split("@", 1)
-        if splited[0] in self.frames and not splited[1] == "":
+        if splited[0] in self.frames and not splited[1] == "" and not splited[1][0].isdigit():
             instruction.add_argument(argCount, "var", x)
         else:
             print(f"'{x}' - Invalid variable.", file=sys.stderr)
