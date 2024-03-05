@@ -68,19 +68,19 @@ class IPPCodeInterpreter:
 
     def create_var(self, instruction, x, argCount):
         if '@' not in x:
-            print(f"'{x}' - Variable name is missing '@'.")
-            sys.exit(22)
+            print(f"'{x}' - Variable name is missing '@'.", file=sys.stderr)
+            sys.exit(23)
         splited = x.split("@", 1)
         if splited[0] in self.frames and not splited[1] == "":
             instruction.add_argument(argCount, "var", x)
         else:
-            print(f"'{x}' - Invalid variable.")
-            sys.exit(22)
+            print(f"'{x}' - Invalid variable.", file=sys.stderr)
+            sys.exit(23)
 
     def create_symb(self, instruction, x, argCount):
         if '@' not in x:
-            print(f"'{x}' - Variable name is missing '@'.")
-            sys.exit(22)
+            print(f"'{x}' - Variable name is missing '@'.", file=sys.stderr)
+            sys.exit(23)
         splited = x.split("@", 1)
 
         if splited[0] in self.frames:
@@ -93,21 +93,21 @@ class IPPCodeInterpreter:
                 if splited[1] == "nil":
                     arg_value = "nil"
                 else:
-                    print("Error: Wrong usage of 'nil'.")
-                    sys.exit(22)
+                    print("Error: Wrong usage of 'nil'.", file=sys.stderr)
+                    sys.exit(23)
             elif not splited[1] == "" and not splited[1] == "nil":
                 if re.fullmatch(self.type_reg[splited[0]], splited[1]):
                     arg_value = splited[1]
                 else:
-                    print("Error: Value doesn't match the type.")
-                    sys.exit(22)
+                    print("Error: Value doesn't match the type.", file=sys.stderr)
+                    sys.exit(23)
             else:
-                print("Error: Invalid symbol.")
-                sys.exit(22)
+                print("Error: Invalid symbol.", file=sys.stderr)
+                sys.exit(23)
             instruction.add_argument(argCount, arg_type, arg_value)
         else:
-            print(f"'{x}' - Not a valid symbol or variable.")
-            sys.exit(22)
+            print(f"'{x}' - Not a valid symbol or variable.", file=sys.stderr)
+            sys.exit(23)
 
     def create_label(self, instruction, x, argCount):
         instruction.add_argument(argCount, "label", x)
@@ -116,8 +116,8 @@ class IPPCodeInterpreter:
         if x in self.types:
             instruction.add_argument(argCount, "type", x)
         else:
-            print(f"'{x}' - Not a valid type.")
-            sys.exit(22)
+            print(f"'{x}' - Not a valid type.", file=sys.stderr)
+            sys.exit(23)
 
     def parse(self):
         program = Program()
@@ -126,7 +126,7 @@ class IPPCodeInterpreter:
         found = False
         while not found:
             first_line = sys.stdin.readline()
-            if not first_line.strip().startswith('#'):
+            if not first_line.strip().startswith('#') and not first_line.strip() == "":
                 found = True
 
         first_line = re.sub(r'#.*', '', first_line).strip()
@@ -144,14 +144,14 @@ class IPPCodeInterpreter:
                         expected_funcs = self.function_dict[words[0]]
                         if len(words) != len(expected_funcs) + 1:
                             print(
-                                f"Error: Incorrect number of arguments for command '{words[0]}'. Expected {len(expected_funcs)}, got {len(words) - 1}.")
+                                f"Error: Incorrect number of arguments for command '{words[0]}'. Expected {len(expected_funcs)}, got {len(words) - 1}.", file=sys.stderr)
                             sys.exit(22)
                         else:
                             instruction = program.add_instruction(words[0], order_count)
                             for arg_count, func in enumerate(expected_funcs, start=1):
                                 func(instruction, words[arg_count], arg_count)
                     else:
-                        print(f"No functions found for command '{words[0]}'.")
+                        print(f"No functions found for command '{words[0]}'.", file=sys.stderr)
                         sys.exit(22)
 
             xml_str = program.get_xml()
