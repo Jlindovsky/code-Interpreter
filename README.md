@@ -7,7 +7,7 @@
 
 Tato třída slouží k reprezentaci programu v jazyce IPPcode24.
 
-- `__init__(self)`: Inicializuje objekt třídy Program a vytváří kořenový element XML reprezentace programu.
+- `__init__(self)`: Inicializuje objekt třídy Program a vytváří kořenový element XML reprezentace.
 - `add_instruction(self, opcode, order_count)`: Metoda přidává novou instrukci do programu s daným operátorem (opcode) a pořadovým číslem. Inkrementuje pořadové číslo instrukce.
 - `get_xml(self)`: Metoda vrátí XML reprezentaci programu jako řetězec.
 
