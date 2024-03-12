@@ -1,3 +1,4 @@
+import argparse
 import re
 import sys
 import xml.etree.ElementTree as ET
@@ -27,7 +28,7 @@ class IPPCodeInterpreter:
     def __init__(self):
         self.frames = ["GF", "LF", "TF"]
         self.types = ["int", "string", "bool", "nil"]
-        self.type_reg = {"int": r'-*[0-9]+', "bool": r'(false|true)', "string": r'[^ ]*', "nil": r'nil'}
+        self.type_reg = {"int":r'(?:\-|\+)?(-*0[oO][0-8]+|-*0[xX][0-9a-fA-F]+|-*[0-9]+)',"bool":r'(false|true)',"string":r'(:?[^#\x00-\x1f\\]|\\[0-9]{3})*',"nil":r'nil'}
         self.function_dict = {
             'MOVE': [self.create_var, self.create_symb],
             'CREATEFRAME': [],
@@ -122,14 +123,12 @@ class IPPCodeInterpreter:
     def parse(self):
         program = Program()
         order_count = [0]
+        first_line = ""
+        for line in sys.stdin:
+            if not line.strip().startswith('#') and not line.strip() == "":
+                first_line = re.sub(r'#.*', '', line).strip()
+                break
 
-        found = False
-        while not found:
-            first_line = sys.stdin.readline()
-            if not first_line.strip().startswith('#') and not first_line.strip() == "":
-                found = True
-
-        first_line = re.sub(r'#.*', '', first_line).strip()
         if first_line.upper() == ".IPPCODE24":
             for line in sys.stdin:
                 if line.strip().startswith('#'):
@@ -160,6 +159,12 @@ class IPPCodeInterpreter:
             print("Error: The first line is not '.IPPcode24'. Exiting.", file=sys.stderr)
             sys.exit(21)
 
-if __name__ == "__main__":
+def main():
+    parser = argparse.ArgumentParser(prog="IPP/parser", description="Skript typu filtr načte ze standardního vstupu zdrojový kód v IPPcode24 , zkontroluje lexikální a syntaktickou správnost kódu a vypíše na standardní výstup XML reprezentaci programu dle specifikace", epilog="Hope it helps otherwise contact VUT call center")
+    parser.parse_args()
     interpreter = IPPCodeInterpreter()
     interpreter.parse()
+
+if __name__ == "__main__":
+    main()
+
