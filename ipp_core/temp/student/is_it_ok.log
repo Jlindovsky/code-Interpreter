@@ -1,0 +1,14 @@
+Archive:  xlindo04.zip
+  inflating: Class.png               
+  inflating: Frame.php               
+  inflating: Interpreter.php         
+  inflating: Stack.php               
+  inflating: Variable.php            
+  inflating: arg.php                 
+  inflating: functions.php           
+  inflating: inst.php                
+  inflating: interpretException.php  
+  inflating: opcodeCheck.php         
+  inflating: preProcess.php          
+  inflating: readme2.md              
+  inflating: umlT.php                
